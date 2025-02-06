@@ -1,0 +1,21 @@
+[
+    {
+      "productname": "Svaad Sugar-1KG Pouch",
+      "discountPercentage": "92%",
+      "description": "Get Svaad Sugar 1kg at best price when spend 49 on Grocery, Staples, Snacks & Packaged Food Products. Hurry Limited Period Offer.",
+      "productImage": "assets/svaadsugar.jpg",
+      "currentPrice": "₹5",
+      "originalPrice": "₹65",
+      "additionalInfo": "Order for 49.00 more for tomorrow from Grocery & Staples, Snacks Packaged Foods excluding Baby Food to avail this offer!"
+    },
+    {
+        "productname": "Svaad Salt-1KG Pouch",
+        "discountPercentage": "22%",
+        "description": "Get Svaad Salt 1kg at best price when spend 49 on Grocery, Staples, Snacks & Packaged Food Products. Hurry Limited Period Offer.",
+        "productImage": "assets/svaadsalt.jpeg",
+        "currentPrice": "₹25",
+        "originalPrice": "₹35",
+        "additionalInfo": "Order for 49.00 more for tomorrow from Grocery & Staples, Snacks Packaged Foods excluding Baby Food to avail this offer!"
+      }
+  ]
+  

@@ -1,5 +1,13 @@
-import 'package:flutter/material.dart';
+import 'dart:convert'; // For JSON decoding
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+Future<List<Map<String, dynamic>>> loadJsonData() async {
+  String jsonString = await rootBundle.loadString('assets/offers.json');
+  List<dynamic> jsonList = jsonDecode(jsonString);
+  return jsonList.cast<Map<String, dynamic>>();
+}
 void main() {
   runApp(MyApp());
 }
@@ -51,20 +59,74 @@ class MyApp extends StatelessWidget {
           ],
         ),
         body: SingleChildScrollView(
-          child: Column(
-            children: const [
-              SavingsCornerSection(),
-              SizedBox(height: 5), // Add spacing between sections
-              RewardsInviteSection(),
-              SizedBox(height: 5),
-              OfferZoneDivider(),
-              SizedBox(height: 5),
-              OfferCard(),
-              SizedBox(height: 5),
-              OfferCard(),
-            ],
-          ),
+  child: Column(
+    children: [
+      SavingsCornerSection(),
+      SizedBox(height: 5),
+      RewardsInviteSection(),
+      SizedBox(height: 5),
+      OfferZoneDivider(),
+      SizedBox(height: 5),
+      FutureBuilder<List<Map<String, dynamic>>>(
+        future: loadJsonData(), // Load JSON data
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            // Display "uh-oh" and "No offers available at the moment"
+            return Padding(
+  padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 18.0),
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // Display image above the text "uh-oh"
+      Center(
+        child: Icon(
+          Icons.search,
+          color: Colors.grey,
+          size: 100, // Adjust icon size as needed
         ),
+      ),
+    // Space between image and text
+      Text(
+        '"uh-oh"',
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey, // Highlight "uh-oh" text with red color
+        ),
+      ),
+      SizedBox(height: 10), // Add space between the texts
+      Text(
+        'No offers available at the moment',
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
+      ),
+    ],
+  ),
+);
+
+          } else {
+            // Display all offers
+            return Column(
+              children: snapshot.data!.map((offer) {
+                return OfferCard(offer: offer);
+              }).toList(),
+            );
+          }
+        },
+      ),
+    ],
+  ),
+),
         bottomNavigationBar: const BottomAppBar(
           color: Colors.white,
           child: Padding(
@@ -392,12 +454,13 @@ class OfferZoneDivider extends StatelessWidget {
 }
 
 class OfferCard extends StatelessWidget {
-  const OfferCard();
+  final Map<String, dynamic> offer;
+
+  const OfferCard({required this.offer});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      // Add 18.0 padding around the entire card
       padding: const EdgeInsets.only(left: 18.0, right: 18.0, bottom: 16.0),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
@@ -432,29 +495,28 @@ class OfferCard extends StatelessWidget {
                           ),
                         ),
                         WidgetSpan(
-  child: ShaderMask(
-    shaderCallback: (bounds) {
-      return LinearGradient(
-        colors: [
-          Colors.orange,
-          Colors.white,
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(bounds);
-    },
-    child: Text(
-      "92%",
-      style: TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.white, // Text color overridden by ShaderMask
-      ),
-    ),
-  ),
-),
-
+                          child: ShaderMask(
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                colors: [
+                                  Colors.orange,
+                                  Colors.white,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ).createShader(bounds);
+                            },
+                            child: Text(
+                              offer['discountPercentage'] ?? "N/A",
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
                         TextSpan(
                           text: " Offer",
                           style: TextStyle(
@@ -470,15 +532,15 @@ class OfferCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 8), // Reduced vertical distance
+            SizedBox(height: 8),
             // Offer Description Row with Image
             Row(
               children: [
                 // Offer Description Text
                 Expanded(
-                  flex: 3, // Occupies 75% of the row
+                  flex: 3,
                   child: Text(
-                    'Get Svaad Sugar 1kg at best price when spend 49 on Grocery, Staples, Snacks & Packaged Food Products. Hurry Limited Period Offer.',
+                    offer['description'] ?? "No description available",
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
@@ -487,15 +549,15 @@ class OfferCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 8), // Small gap between text and image
-                // Offer Image adjusted slightly above
+                SizedBox(width: 8),
+                // Offer Image
                 Flexible(
-                  flex: 1, // Occupies 25% of the row
+                  flex: 1,
                   child: Transform.translate(
-                    offset: Offset(0, -60), // Adjust image position (upward by 10 pixels)
+                    offset: Offset(0, -60),
                     child: Image.asset(
-                      'assets/discount label.png',
-                      height: 70, // Image size remains unchanged
+                      "assets/discount label.png",
+                      height: 70,
                       width: 70,
                       fit: BoxFit.cover,
                     ),
@@ -509,7 +571,7 @@ class OfferCard extends StatelessWidget {
               children: [
                 // Product Image
                 Image.asset(
-                  'assets/svaadsugar.jpg',
+                  offer['productImage'] ?? "assets/placeholder.png",
                   height: 80,
                   width: 80,
                   fit: BoxFit.cover,
@@ -520,7 +582,7 @@ class OfferCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Svaad Sugar-1KG Pouch',
+                      offer['productname'] ?? "No product name",
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
@@ -532,7 +594,7 @@ class OfferCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '₹5',
+                          offer['currentPrice'] ?? "N/A",
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
@@ -542,7 +604,7 @@ class OfferCard extends StatelessWidget {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          '₹65',
+                          offer['originalPrice'] ?? "N/A",
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 14,
@@ -555,25 +617,24 @@ class OfferCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text.rich(
-  TextSpan(
-    text: 'Max quantity: ', // Normal weight
-    style: TextStyle(
-      fontFamily: 'Poppins',
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: Colors.grey,
-    ),
-    children: [
-      TextSpan(
-        text: '1', // Bold weight
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ],
-  ),
-),
-
+                      TextSpan(
+                        text: 'Max quantity: ',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '1',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -590,7 +651,7 @@ class OfferCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Order for 49.00 more for tomorrow from Grocery & Staples, Snacks Packaged Foods excluding Baby Food to avail this offer!',
+                      offer['additionalInfo'] ?? "No additional info",
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,

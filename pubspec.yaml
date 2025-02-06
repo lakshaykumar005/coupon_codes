@@ -62,9 +62,12 @@ flutter:
     - assets/coupon with gift box.png
     - assets/money and phone.png
     - assets/svaadsugar.jpg
+    - assets/svaadsalt.jpeg
     - assets/discount label.png
     - assets/deliveryservice.jpg
     - assets/Share Rounded.png
+    - assets/offers.json
+    - assets/no offers.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
